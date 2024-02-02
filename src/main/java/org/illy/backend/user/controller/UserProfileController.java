@@ -4,6 +4,8 @@ package org.illy.backend.user.controller;
 import lombok.RequiredArgsConstructor;
 import org.illy.backend.common.response.ApiResponse;
 import org.illy.backend.common.response.SuccessMessage;
+import org.illy.backend.event.dto.EventReqDto;
+import org.illy.backend.project.dto.ProjectCreateDto;
 import org.illy.backend.project.dto.ProjectRequestDto;
 import org.illy.backend.project.dto.ProjectResponseDto;
 import org.illy.backend.project.dto.ProjectUploadDto;
@@ -32,10 +34,18 @@ public class UserProfileController {
         return ApiResponse.success(SuccessMessage.GET_PORTFOLIO_SUCCESS, data);
     }
 
-    // 포트폴리오 내용 업로드
+    // 포트폴리오 내용 업로드 (gpt 사용)
     @PostMapping(value="/projects")
     public ApiResponse<ProjectResponseDto> addUserProject(@RequestBody ProjectUploadDto projectUploadDto, @AuthenticationPrincipal User user) {
         ProjectResponseDto data = projectService.addUserProject(projectUploadDto, user);
+        return ApiResponse.success(SuccessMessage.ADD_PROJECT_SUCCESS, data);
+    }
+
+    // 포트폴리오 내용 업로드
+    @PostMapping(value="/projects/save",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<ProjectResponseDto> addUserProject(@RequestPart(value="project", required = true) ProjectCreateDto projectCreateDto, @RequestPart(value="image", required = false) MultipartFile image, @AuthenticationPrincipal User user) {
+        ProjectResponseDto data = projectService.createUserProject(user, image, projectCreateDto);
         return ApiResponse.success(SuccessMessage.ADD_PROJECT_SUCCESS, data);
     }
 

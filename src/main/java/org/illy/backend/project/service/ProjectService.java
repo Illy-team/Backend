@@ -5,9 +5,14 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import org.illy.backend.common.exception.CustomException;
 import org.illy.backend.common.response.ErrorMessage;
+import org.illy.backend.event.dto.EventReqDto;
+import org.illy.backend.event.entity.Event;
+import org.illy.backend.event.entity.EventType;
+import org.illy.backend.event.repository.EventRepository;
 import org.illy.backend.gpt.dto.ChatGptResponse;
 import org.illy.backend.gpt.service.ChatGptService;
 import org.illy.backend.project.ProjectRepository;
+import org.illy.backend.project.dto.ProjectCreateDto;
 import org.illy.backend.project.dto.ProjectRequestDto;
 import org.illy.backend.project.dto.ProjectResponseDto;
 import org.illy.backend.project.dto.ProjectUploadDto;
@@ -28,6 +33,7 @@ import java.util.regex.Pattern;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final EventRepository eventRepository;
     private final AmazonS3 amazonS3;
     private final ChatGptService chatGptService;
 
@@ -141,5 +147,36 @@ public class ProjectService {
             throw new CustomException(ErrorMessage.NOT_FOUND_PROJECT_EXCEPTION);
         }
 
+    }
+
+    public ProjectResponseDto createUserProject(User user, MultipartFile file, ProjectCreateDto projectCreateDto) {
+        String s3Url = null;
+        if (file != null) {
+            if (!file.isEmpty()) {
+                s3Url = uploadImage(user.getId(), file);
+            }
+        }
+        Project saveProject = Project.builder()
+                .title(projectCreateDto.getTitle())
+                .subject(projectCreateDto.getSubject())
+                .user(user)
+                .category(projectCreateDto.getCategory())
+                .role(projectCreateDto.getRole())
+                .date(projectCreateDto.getDate())
+                .content(projectCreateDto.getContent())
+                .thumbnail(s3Url)
+                .build();
+
+        var res = projectRepository.save(saveProject);
+        return ProjectResponseDto.builder()
+                .projectId(res.getId())
+                .title(res.getTitle())
+                .subject(res.getSubject())
+                .role(res.getRole())
+                .date(res.getDate())
+                .category(res.getCategory())
+                .content(res.getContent())
+                .thumbnail(res.getThumbnail())
+                .build();
     }
 }

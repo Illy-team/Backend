@@ -39,6 +39,7 @@ public enum SuccessMessage {
      */
     GET_EVENT_SUCCESS(OK, "공고 조회에 성공했습니다."),
     SAVE_EVENT_SUCCESS(CREATED, "공고 저장에 성공했습니다."),
+    DELETE_EVENT_SUCCESS(OK, "저장된 공고 삭제에 성공했습니다."),
     ;
 
     private final HttpStatus httpStatus;

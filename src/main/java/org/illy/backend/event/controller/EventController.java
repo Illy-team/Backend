@@ -51,4 +51,11 @@ public class EventController {
         EventResponseDto data = service.saveEvent(user, eventReqDto);
         return ApiResponse.success(SuccessMessage.SAVE_EVENT_SUCCESS, data);
     }
+
+    // 저장했던 공고 삭제
+    @DeleteMapping
+    public ApiResponse<String> deleteUserProject(@RequestBody EventReqDto eventReqDto, @AuthenticationPrincipal User user) {
+        service.deleteUserEvent(user, eventReqDto);
+        return ApiResponse.success(SuccessMessage.DELETE_EVENT_SUCCESS, "삭제 완료");
+    }
 }

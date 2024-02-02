@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +84,11 @@ public class EventService {
     // 캘린더 피드
     public List<EventResponseDto> getSavedEvents(User user) {
         return userEventRepository.findSavedEvents(user.getId());
+    }
+
+    public void deleteUserEvent(User user, EventReqDto eventReqDto) {
+        Optional<UserEvent> userEvent = userEventRepository.findEventsByUserAndEventId(user.getId(), eventReqDto.getEventId(), RelationType.SAVED);
+        userEvent.ifPresent(userEventRepository::delete);
     }
 
 }
