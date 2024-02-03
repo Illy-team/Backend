@@ -34,27 +34,19 @@ public class UserProfileController {
         return ApiResponse.success(SuccessMessage.GET_PORTFOLIO_SUCCESS, data);
     }
 
-    // 포트폴리오 내용 업로드 (gpt 사용)
-    @PostMapping(value="/projects")
-    public ApiResponse<ProjectResponseDto> addUserProject(@RequestBody ProjectUploadDto projectUploadDto, @AuthenticationPrincipal User user) {
-        ProjectResponseDto data = projectService.addUserProject(projectUploadDto, user);
+    // 포트폴리오 업로드 (gpt 사용, 이미지와 내용 같이 등록)
+    @PostMapping(value="/projects",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<ProjectResponseDto> addUserProject(@RequestPart(value="project", required = true) ProjectUploadDto project, @RequestPart(value="thumbnail", required = false) MultipartFile image, @AuthenticationPrincipal User user) {
+        ProjectResponseDto data = projectService.addUserProject(project, user, image);
         return ApiResponse.success(SuccessMessage.ADD_PROJECT_SUCCESS, data);
     }
 
-    // 포트폴리오 내용 업로드
-    @PostMapping(value="/projects/save",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<ProjectResponseDto> addUserProject(@RequestPart(value="project", required = true) ProjectCreateDto projectCreateDto, @RequestPart(value="image", required = false) MultipartFile image, @AuthenticationPrincipal User user) {
-        ProjectResponseDto data = projectService.createUserProject(user, image, projectCreateDto);
+    // 포트폴리오 최종 저장
+    @PostMapping(value="/projects/save")
+    public ApiResponse<ProjectResponseDto> saveUserProject(@RequestBody ProjectCreateDto project, @AuthenticationPrincipal User user) {
+        ProjectResponseDto data = projectService.createUserProject(project, user);
         return ApiResponse.success(SuccessMessage.ADD_PROJECT_SUCCESS, data);
-    }
-
-    // 포트폴리오 이미지 저장
-    @PostMapping(value="/projects/image",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<String> addUserProject(@RequestPart(value="thumbnail", required = false) MultipartFile image, @AuthenticationPrincipal User user) {
-        String data = projectService.uploadImage(user.getId(), image);
-        return ApiResponse.success(SuccessMessage.ADD_PROJECT_IMAGE_SUCCESS, data);
     }
 
     // 관심 분야, 관심 프로젝트 저장

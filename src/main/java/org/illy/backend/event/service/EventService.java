@@ -18,6 +18,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +88,29 @@ public class EventService {
 
     // 캘린더 피드
     public List<EventResponseDto> getSavedEvents(User user) {
-        return userEventRepository.findSavedEvents(user.getId());
+        List<EventResponseDto> userEventList = userEventRepository.findSavedEvents(user.getId());
+        return userEventList.stream()
+                .map(eventResponseDto -> {
+                    EventResponseDto modifiedDto = new EventResponseDto();
+                    modifiedDto.setEventId(eventResponseDto.getEventId());
+                    modifiedDto.setImage(eventResponseDto.getImage());
+                    modifiedDto.setLink(eventResponseDto.getLink());
+                    modifiedDto.setCategory(eventResponseDto.getCategory());
+                    try {
+                        modifiedDto.setApplyDate(eventResponseDto.convertApplyDate(eventResponseDto.getApplyDate()));
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    modifiedDto.setActivityDate(eventResponseDto.getActivityDate());
+                    modifiedDto.setTasks(eventResponseDto.getTasks());
+                    modifiedDto.setType(eventResponseDto.getType());
+                    modifiedDto.setHostName(eventResponseDto.getHostName());
+                    modifiedDto.setPreferred(eventResponseDto.getPreferred());
+                    modifiedDto.setRequirement(eventResponseDto.getRequirement());
+                    modifiedDto.setTitle(eventResponseDto.getTitle());
+                    return modifiedDto;
+                })
+                .toList();
     }
 
     public void deleteUserEvent(User user, EventReqDto eventReqDto) {

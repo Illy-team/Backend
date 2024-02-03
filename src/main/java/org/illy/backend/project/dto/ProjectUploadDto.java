@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProjectUploadDto {
     private String project;
-    private String image;
 }

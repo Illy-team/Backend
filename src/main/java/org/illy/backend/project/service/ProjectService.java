@@ -69,8 +69,9 @@ public class ProjectService {
         return "없음";
     }
 
-    public ProjectResponseDto addUserProject(ProjectUploadDto projectUploadDto, User user) {
+    public ProjectResponseDto addUserProject(ProjectUploadDto projectUploadDto, User user, MultipartFile image) {
         // project 인풋으로 프로젝트 이름, 주제, 분야, 역할, 기간, 상세 내용을 작성
+        String s3Url = this.uploadImage(user.getId(), image);
         ChatGptResponse chatGptResponse = chatGptService.askQuestionToMakePortfolio(projectUploadDto.getProject());
         String result = chatGptResponse.getChoices().get(0).getMessage().getContent();
 
@@ -94,36 +95,15 @@ public class ProjectService {
         }
 
 
-        Project saveProject = Project.builder()
+        return ProjectResponseDto.builder()
                 .title(title)
                 .subject(subject)
-                .user(user)
                 .category(category)
                 .role(role)
                 .date(date)
                 .content(String.valueOf(contentRes))
-                .thumbnail(projectUploadDto.getImage())
+                .thumbnail(s3Url)
                 .build();
-
-        var res = projectRepository.save(saveProject);
-        return ProjectResponseDto.builder()
-                .projectId(res.getId())
-                .title(res.getTitle())
-                .subject(res.getSubject())
-                .role(res.getRole())
-                .date(res.getDate())
-                .category(res.getCategory())
-                .content(res.getContent())
-                .thumbnail(res.getThumbnail())
-                .build();
-//        return ProjectResponseDto.builder()
-//                .title("gpt test")
-//                .subject("test")
-//                .role("test")
-//                .date("test")
-//                .category("test")
-//                .content("test")
-//                .build();
     }
 
     public ProjectResponseDto updateUserProject(ProjectRequestDto projectRequestDto) {
@@ -149,22 +129,16 @@ public class ProjectService {
 
     }
 
-    public ProjectResponseDto createUserProject(User user, MultipartFile file, ProjectCreateDto projectCreateDto) {
-        String s3Url = null;
-        if (file != null) {
-            if (!file.isEmpty()) {
-                s3Url = uploadImage(user.getId(), file);
-            }
-        }
+    public ProjectResponseDto createUserProject(ProjectCreateDto project, User user) {
         Project saveProject = Project.builder()
-                .title(projectCreateDto.getTitle())
-                .subject(projectCreateDto.getSubject())
+                .title(project.getTitle())
+                .subject(project.getSubject())
                 .user(user)
-                .category(projectCreateDto.getCategory())
-                .role(projectCreateDto.getRole())
-                .date(projectCreateDto.getDate())
-                .content(projectCreateDto.getContent())
-                .thumbnail(s3Url)
+                .category(project.getCategory())
+                .role(project.getRole())
+                .date(project.getDate())
+                .content(project.getContent())
+                .thumbnail(project.getThumbnail())
                 .build();
 
         var res = projectRepository.save(saveProject);
